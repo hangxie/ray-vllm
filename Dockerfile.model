@@ -1,0 +1,23 @@
+# Start from the base image we just built
+FROM hangxie/ray-vllm-base:v0.0.1
+
+# 1. Set the cache directory
+ENV HF_HOME=/home/ray/model_cache
+
+# 2. Use the Secret Mount
+# This mounts the secret to /run/secrets/HF_TOKEN temporarily
+RUN --mount=type=secret,id=HF_TOKEN,uid=1000 \
+    python3 -c "import os; from huggingface_hub import snapshot_download; \
+    token_path = '/run/secrets/HF_TOKEN'; \
+    token = open(token_path).read().strip() if os.path.exists(token_path) else None; \
+    snapshot_download(repo_id='Qwen/Qwen3-1.7B', \
+    local_dir='/home/ray/model_cache', \
+    token=token, \
+    ignore_patterns=['*.msgpack', '*.h5'])"
+
+# 3. Copy your script (Make sure vllm.sh is in your folder!)
+COPY --chown=ray:users vllm.sh /home/ray/vllm.sh
+RUN chmod +x /home/ray/vllm.sh
+
+WORKDIR /home/ray
+ENTRYPOINT ["bash", "/home/ray/vllm.sh"]
