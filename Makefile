@@ -10,20 +10,10 @@ VERSION := $(shell git describe --tags --always)
 all: build  ## build all default targets
 
 .PHONY: build
-build: build-base build-model  ## build all images
-
-.PHONY: build-base
-build-base:  ## build base image
+build:  ## build image
 	docker build . \
-		-f Dockerfile.base \
-		-t hangxie/ray-vllm-base:$(VERSION)
-
-.PHONY: build-model
-build-model:  ## build model image
-	docker build . \
-		--secret id=HF_TOKEN,env=HF_TOKEN \
-		-f Dockerfile.model \
-		-t hangxie/ray-vllm:$(VERSION)-qwen
+		-f Dockerfile \
+		-t hangxie/ray-vllm:$(VERSION)
 
 .PHONY: help
 help:  ## Print list of Makefile targets
